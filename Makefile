@@ -1,12 +1,12 @@
 EC2:
 	aws ec2 run-instances \
-		--region eu-west-1 \
-		--image-id ami-0d940f23d527c3ab1 \
+		--region eu-central-2 \
+		--image-id ami-0012c4a50d44fc78a \
 		--count 1 \
-		--instance-type t2.micro \
-		--key-name "Default_Key" \
-		--security-group-ids sg-0957192a8dd9b85d5 \
-		--subnet-id subnet-068a85fca33f6410d \
+		--instance-type t3.micro \
+		--key-name "epflWP" \
+		--security-group-ids sg-0f49502b10d5c3ec0 \
+		--subnet-id subnet-0b627edec6cc82546 \
 		--tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value="EWS2AWSv1"}]' \
 		--user-data file://Prerequis_installation.txt
 
@@ -17,3 +17,18 @@ IP_Static:
 
 associate-IP:
 	aws ec2 associate-address --instance-id i-0f881579de087b4a0 --allocation-id eipalloc-059f1f34afc284a40
+
+
+	
+
+
+Creation_DB:
+	aws rds create-db-instance \
+  	--db-instance-identifier dbEWS2AWS \
+  	--db-instance-class db.t3.micro \
+  	--engine MariaDB \
+  	--master-username admin \
+  	--master-user-password 12345678 \
+  	--region eu-central-2 \
+  	--vpc-security-group-ids sg-0f49502b10d5c3ec0 \
+	--allocated-storage 20 
