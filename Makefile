@@ -53,14 +53,7 @@ Creation_DB:
 
 	mysql -h dbews2aws.czkaoeksq1g8.eu-central-2.rds.amazonaws.com -P 3306 -u admin -p
 
-	for i in $$SITES_LIST; do
-	 echo "Hello $i"
-	done
-
-	restic -r s3:https://s3.epfl.ch/svc0041-b80382f4fba20c6c1d9dc1bebefc5583/backup/wordpresses/www__innovation/files restore latest --target /tmp/test_wp
-	restic -r s3:https://s3.epfl.ch/svc0041-b80382f4fba20c6c1d9dc1bebefc5583/backup/wordpresses/www__labs__cfi/sql restore latest --target /tmp
-
-
+	
 Restor_backup_local:
 	export AWS_SECRET_ACCESS_KEY=$(cat /keybase/team/epfl_wp_prod/aws-cli-credentials | grep -A2 '\[backup-wwp\]' | grep aws_secret_access_key | sed 's/aws_secret_access_key = //'); \
 	export AWS_ACCESS_KEY_ID=$(cat /keybase/team/epfl_wp_prod/aws-cli-credentials | grep -A2 '\[backup-wwp\]' | grep aws_access_key_id | sed 's/aws_access_key_id = //'); \
