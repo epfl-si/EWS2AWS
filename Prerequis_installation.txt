@@ -2,7 +2,7 @@
 curl https://github.com/crazylady2004.keys >> /home/ubuntu/.ssh/authorized_keys
 sudo apt update
 sudo apt install apache2 -y
-sudo apt install mysql-client-core-8.0 
+sudo apt install mariadb-client-core-10.6 -y
 echo '<html><h1>Hello From Your Web Server!</h1></html>' > /var/www/html/index.html
 sudo apt install php libapache2-mod-php php-cli php-mysql -y
-sudo apt-get install restic -y
+
