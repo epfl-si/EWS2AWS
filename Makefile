@@ -1,5 +1,7 @@
 SHELL := /bin/bash
 SITES_LIST=www www__about www__education www__research www__innovation www2018
+include .env
+
 
 .PHONY: help
 # Print this help (see <https://gist.github.com/klmr/575726c7e05d8780505a> for explanation)
@@ -10,7 +12,7 @@ help:
 
 ## Coucou, je suis la doc de la target EC2
 EC2:
-	aws ec2 run-instances \
+    $(eval instance_id := $(shell aws ec2 run-instances \
 		--region eu-central-2 \
 		--image-id ami-0012c4a50d44fc78a \
 		--count 1 \
@@ -19,17 +21,21 @@ EC2:
 		--security-group-ids sg-0f49502b10d5c3ec0 sg-03c3d5996d33bbff0 \
 		--subnet-id subnet-0b627edec6cc82546 \
 		--tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value="EWS2AWSv1"}]' \
-		--user-data file://Prerequis_installation.txt > data.json
+		--user-data file://Prerequis_installation.txt | awk '/InstanceId/{print $2}') | sed 's/InstanceId: \([^,]*\),/\1/')
+        @echo instance_id=$(instance_id) >>.env
+        @echo L'instance est crée avec l'id $(instance_id)
 
 IP_Static:
-	aws ec2 allocate-address \
-    --region eu-central-2 \
-    --domain vpc-0d8ad0bf75015308c
+	$(eval allocation-id := $(shell aws ec2 allocate-address \
+	    --region eu-central-2 \
+	    --domain vpc-0d8ad0bf75015308c | awk '/allocation-id/{print $2}') | sed 's/allocation-id: \([^,]*\),/\1/')
+	    @echo instance_id=$(allocation-id) >>.env
+	    @echo L'instance est crée avec l'id $(allocation-id)
 
 associate-IP:
 	aws ec2 associate-address \
     --region eu-central-2 \
-    --instance-id i-068f6eccbd7b27649 \
+    --instance-id $(instance_id) \
     --allocation-id eipalloc-0887dd86e6eabd00a
 
 
