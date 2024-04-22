@@ -23,20 +23,20 @@ EC2:
 		--tag-specifications 'ResourceType=instance,Tags=[{Key=Name,Value="EWS2AWSv1"}]' \
 		--user-data file://Prerequis_installation.txt | awk '/InstanceId/{print $2}') | sed 's/InstanceId: \([^,]*\),/\1/')
         @echo instance_id=$(instance_id) >>.env
-        @echo L'instance est crée avec l'id $(instance_id)
+        @echo instance est crée avec un id $(instance_id)
 
 IP_Static:
 	$(eval allocation-id := $(shell aws ec2 allocate-address \
 	    --region eu-central-2 \
 	    --domain vpc-0d8ad0bf75015308c | awk '/allocation-id/{print $2}') | sed 's/allocation-id: \([^,]*\),/\1/')
 	    @echo instance_id=$(allocation-id) >>.env
-	    @echo L'instance est crée avec l'id $(allocation-id)
+	    @echo l ip static est crée avec un id $(allocation-id)
 
 associate-IP:
 	aws ec2 associate-address \
     --region eu-central-2 \
     --instance-id $(instance_id) \
-    --allocation-id eipalloc-0887dd86e6eabd00a
+    --allocation-id $(allocation-id) | @echo association entre ip et instance fait 
 
 
 Creation_DB:
@@ -48,13 +48,9 @@ Creation_DB:
   	--master-user-password 12345678 \
   	--region eu-central-2 \
   	--vpc-security-group-ids sg-0f49502b10d5c3ec0 sg-05f915ac5b05eae54 \
-	--allocated-storage 20 
+	--allocated-storage 20 | @echo création de la base de donnée RDS
 
-	sudo mkdir -p /var/www/aws.fsd.team
-		sudo mkdir -p /var/www/www2018.epfl.ch
 
-		sudo chmod -R 755 /var/www
-		vi /var/www/aws.fsd.team/index.html > 
 
 
 	mysql -h dbews2aws.czkaoeksq1g8.eu-central-2.rds.amazonaws.com -P 3306 -u admin -p
@@ -71,9 +67,14 @@ Restor_backup_local:
         restic -r s3:https://s3.epfl.ch/svc0041-b80382f4fba20c6c1d9dc1bebefc5583/backup/wordpresses/$${i}/sql restore latest --target /tmp/$${i}; \
     done
 
-
-
-
+to do: 
+Cration_login_db:
+	DB_PASS=$(cat wp-config.php | grep DB_PASSWORD | grep -o "'[^']*'" | awk 'NR==2 {gsub(/'\''/, "", $0); print}') \
+	DB_NAME=$(cat wp-config.php | grep DB_NAME | grep -o "'[^']*'" | awk 'NR==2 {gsub(/'\''/, "", $0); print}') \
+	DB_USER=$(cat wp-config.php | grep DB_USER | grep -o "'[^']*'" | awk 'NR==2 {gsub(/'\''/, "", $0); print}') \
+	CREATE USER $DB_NAME@'%' IDENTIFIED BY $DB_PASS; && \
+	ALTER ROUTINE, CREATE USER, EVENT, TRIGGER ON *.* TO $DB_NAME@'%' WITH GRANT OPTION; && \
+	Create database $DB_NAME;
 
 
 
