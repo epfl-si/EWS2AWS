@@ -7,7 +7,8 @@ include .env
 help:
 	@echo "$$(tput bold)Available rules (alphabetical order):$$(tput sgr0)";sed -ne"/^## /{h;s/.*//;:d" -e"H;n;s/^## //;td" -e"s/:.*//;G;s/\\n## /---/;s/\\n/ /g;p;}" ${MAKEFILE_LIST}|LC_ALL='C' sort -f |awk -F --- -v n=$$(tput cols) -v i=20 -v a="$$(tput setaf 6)" -v z="$$(tput sgr0)" '{printf"%s%*s%s ",a,-i,$$1,z;m=split($$2,w," ");l=n-i;for(j=1;j<=m;j++){l-=length(w[j])+1;if(l<= 0){l=n-i-length(w[j])-1;printf"\n%*s ",-i," ";}printf"%s ",w[j];}printf"\n";}'
 
-## Coucou, je suis la doc de la target EC2
+# https://awscli.amazonaws.com/v2/documentation/api/latest/reference/ec2/run-instances.html
+## Create the Amazon Elastic Compute Cloud (EC2) instance
 EC2:
 	$(eval instance_id := $(shell aws ec2 run-instances \
 		--region eu-central-2 \
@@ -22,6 +23,8 @@ EC2:
 	@echo instance_id=$(instance_id) >> .env
 	@echo L'instance est crée avec l'id $(instance_id)
 
+# https://awscli.amazonaws.com/v2/documentation/api/latest/reference/ec2/allocate-address.html
+## Allocates an Elastic IP address to Amazon Web Services account
 IP_Static:
 	$(eval allocation-id := $(shell aws ec2 allocate-address \
 		--region eu-central-2 \
@@ -29,13 +32,16 @@ IP_Static:
 	@echo instance_id=$(allocation-id) >> .env
 	@echo L'instance est crée avec l'id $(allocation-id)
 
+# https://awscli.amazonaws.com/v2/documentation/api/latest/reference/ec2/associate-address.html
+## Associates an Elastic IP address with our instance
 associate-IP:
 	aws ec2 associate-address \
 		--region eu-central-2 \
 		--instance-id $(instance_id) \
 		--allocation-id eipalloc-0887dd86e6eabd00a
 
-
+# https://awscli.amazonaws.com/v2/documentation/api/latest/reference/rds/create-db-instance.html
+## Creates a new DB instance
 Creation_DB:
 	aws rds create-db-instance \
 		--db-instance-identifier dbEWS2AWS \
@@ -56,7 +62,7 @@ Creation_DB:
 
 	mysql -h dbews2aws.czkaoeksq1g8.eu-central-2.rds.amazonaws.com -P 3306 -u admin -p
 
-	
+## Download each latest "files" and "sql" backups of $SITES_LIST from S3 locally
 Restor_backup_local:
 	export AWS_SECRET_ACCESS_KEY=$(cat /keybase/team/epfl_wp_prod/aws-cli-credentials | grep -A2 '\[backup-wwp\]' | grep aws_secret_access_key | sed 's/aws_secret_access_key = //'); \
 	export AWS_ACCESS_KEY_ID=$(cat /keybase/team/epfl_wp_prod/aws-cli-credentials | grep -A2 '\[backup-wwp\]' | grep aws_access_key_id | sed 's/aws_access_key_id = //'); \
