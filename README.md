@@ -1,36 +1,38 @@
 # EWS2AWS
 
-# Objectif 
-Le but de mon TPI est de mettre en place un Proof of Concept (POC) visant à démontrer la faisabilité de créer une infrastructure cloud AWS et d’y restaurer une partie des sites Internet de l’EPFL. Cette opération doit être scriptée, permettant de limiter les tâches manuelles au maximum.
-
-Pour ce TPI, je simulerai que l’infrastructure OpenShift est hors ligne, qu’il n’est pas possible d’accéder aux documents présents sur les sites respectifs et à leurs bases de données. Je serai amené à me baser sur les dernières sauvegardes, accessibles sur l’infrastructure de stockage objet (S3) complètement séparée de celle des sites.
+# Projet 
+Le but de se projet est de mettre en place un POC1 permettant de démontrer la faisabilité d’une opération de “Cloud-Bursting”, c'est-à-dire de créer une infrastructure cloud AWS et d’y restaurer une partie des sites Internet de l’EPFL. Cette opération doit être scriptée (“as code”), permettant de limiter les opérations manuelles au maximum.
+Pour ce POC, nous supposons que l’infrastructure OpenShift est en hors ligne : il n’est pas possible d’accéder aux documents présents sur les sites respectifs et/ou à leurs bases de données. Le candidat devra se baser sur les dernières sauvegardes, accessibles dans une infrastructure de stockage objects (S3) complètement séparée de celle des sites.
 
 
 # Prérequis techniques 
--	Avoir AWS CLI installer
+-	Avoir AWS CLI installé
 -	Avoir un compte GitHub
 -	Avoir accès au repository WP-Dev et à fsd-team de l’EPFL
 -	Avoir un compte chez AWS
--	Avoir une clé ssh public
+-	Avoir une clé SSH public
 -	Avoir accès à Keybase
+-	Avoir Docker 
 
 # Procédure
+Voici les étapes à faire pour resoter des sites sur AWS
 
- - Etape 1 : 
- Cloner le repository en local
+ - Git clone 
+ - make create_EC2
+ - make create_DB
+ - création make create_static_IP plus 
+ - Faire les modifications dans le repository fsd.team
+ - make associate_static_IP
+ - make download_from_restic prend quelque minute 
+ - make update_wpconfig
+ - make update_htaccess
+ - make update_sql_dump
+ - make create_db_users
+ - démarer docker avant de lancé la suite des commandes 
+ - make copy_wp_from_wp-dev
+ - make copy_files
+ - make import_db
 
- - Etape 2 :
- Aller dans le dossier ou il y a le Makefiles
 
- - Etape 3 :
- Lancé la commande "make EC2" pour pouvoir créer une instance EC2 sur AWS
-
- - Etape 4 :
- Lancer la commnade "make IP_Static" pour pouvoir créer une ip statique pour ensuite la lier a l'alias aws.fsd.team
-
- - Etape 5 :
- Lier l'instance a l'ip il faut fiare la commande "make associate-IP" 
-
- - Etape 6 :
- Il y a la création de la base de donné RDS a faire avec la commande suivante "make Creation_DB"
+ 
 
