@@ -1,8 +1,35 @@
 #!/bin/bash
-curl https://github.com/crazylady2004.keys >> /home/ubuntu/.ssh/authorized_keys
+curl https://github.com/.crazylady2004keys >> /home/ubuntu/.ssh/authorized_keys
+curl https://github.com/lvenries.keys >> /home/ubuntu/.ssh/authorized_keys
+curl https://github.com/ponsfrilus.keys >> /home/ubuntu/.ssh/authorized_keys
 sudo apt update
 sudo apt install apache2 -y
-sudo apt install mariadb-client-core-10.6 -y
-echo '<html><h1>Hello From Your Web Server!</h1></html>' > /var/www/html/index.html
+sudo apt install mysql-client-core-8.0 
+sudo mkdir -p /var/www/www2018.epfl.ch
+sudo mkdir -p /var/www/aws.fsd.team
+sudo chown -R ubuntu:ubuntu /var/www/www2018.epfl.ch
+sudo chown -R ubuntu:ubuntu /var/www/aws.fsd.team
+sudo chmod -R 755 /var/www
+echo '<html><h1>Hello from www2018.epfl.ch</h1></html>' > /var/www/www2018.epfl.ch/index.html
+echo '<html><h1>Hello from aws.fsd.team</h1></html>' > /var/www/aws.fsd.team/index.html
+sudo echo '<VirtualHost *:80>
+    ServerName www2018.epfl.ch
+    ServerAlias www2018.epfl.ch
+    DocumentRoot /var/www/www2018.epfl.ch
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>' > /etc/apache2/sites-available/www2018.epfl.ch.conf
+sudo echo '<VirtualHost *:80>
+    ServerName aws.fsd.team
+    ServerAlias aws.fsd.team
+    DocumentRoot /var/www/aws.fsd.team
+    ErrorLog ${APACHE_LOG_DIR}/error.log
+    CustomLog ${APACHE_LOG_DIR}/access.log combined
+</VirtualHost>' > /etc/apache2/sites-available/aws.fsd.team.conf
+sudo a2ensite aws.fsd.team
+sudo a2ensite www2018.epfl.ch
+sudo a2dissite 000-default.conf
+sudo systemctl restart apache2
 sudo apt install php libapache2-mod-php php-cli php-mysql -y
+sudo apt-get install restic -y
 
