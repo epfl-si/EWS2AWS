@@ -1,35 +1,74 @@
 #!/bin/bash
-curl https://github.com/.crazylady2004keys >> /home/ubuntu/.ssh/authorized_keys
+# User data: You can specify user data to configure an instance during launch, 
+# or to run a configuration script. For more information, see Run commands on 
+# your Linux instance at launch.
+# https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/user-data.html
+
+# Ensure access to team members
+curl https://github.com/crazylady2004.keys >> /home/ubuntu/.ssh/authorized_keys
 curl https://github.com/lvenries.keys >> /home/ubuntu/.ssh/authorized_keys
 curl https://github.com/ponsfrilus.keys >> /home/ubuntu/.ssh/authorized_keys
+
+# Update and configure the system
 sudo apt update
 sudo apt install apache2 -y
 sudo apt install mysql-client-core-8.0 
+
+# Prepare the directories structure
+sudo mkdir /wp
+sudo chown -R ubuntu:ubuntu /wp
+mkdir /home/ubuntu/sql
+sudo chown -R ubuntu:ubuntu /home/ubuntu/sql
 sudo mkdir -p /var/www/www2018.epfl.ch
 sudo mkdir -p /var/www/aws.fsd.team
 sudo chown -R ubuntu:ubuntu /var/www/www2018.epfl.ch
 sudo chown -R ubuntu:ubuntu /var/www/aws.fsd.team
 sudo chmod -R 755 /var/www
-echo '<html><h1>Hello from www2018.epfl.ch</h1></html>' > /var/www/www2018.epfl.ch/index.html
-echo '<html><h1>Hello from aws.fsd.team</h1></html>' > /var/www/aws.fsd.team/index.html
-sudo echo '<VirtualHost *:80>
-    ServerName www2018.epfl.ch
-    ServerAlias www2018.epfl.ch
-    DocumentRoot /var/www/www2018.epfl.ch
+
+# Dummy websites for testing
+echo '<html><h1>Hello from www2018.epfl.ch</h1></html>' > /var/www/www2018.epfl.ch/test.html
+echo '<html><h1>Hello from aws.fsd.team</h1></html>' > /var/www/aws.fsd.team/test.html
+
+# Create self-signed certificates
+sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/apache-selfsigned.key -out /etc/ssl/certs/apache-selfsigned.crt -subj "/C=CH/ST=Vaud/L=Lausanne/O=EPFL/OU=FSD/CN=aws.fsd.team"
+sudo openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout /etc/ssl/private/apache-selfsigned_www2018.key -out /etc/ssl/certs/apache-selfsigned_www2018.crt -subj "/C=CH/ST=Vaud/L=Lausanne/O=EPFL/OU=FSD/CN=wwww2018.epfl.ch"
+
+# Create Apache's virtual host for www2018.fsd.team
+sudo echo '<VirtualHost *:80 *:443>
+    ServerName www2018.fsd.team
+    ServerAlias www2018.fsd.team
+    DocumentRoot /var/www/www2018.fsd.team
     ErrorLog ${APACHE_LOG_DIR}/error.log
     CustomLog ${APACHE_LOG_DIR}/access.log combined
-</VirtualHost>' > /etc/apache2/sites-available/www2018.epfl.ch.conf
-sudo echo '<VirtualHost *:80>
+    SSLEngine on
+    SSLCertificateFile /etc/ssl/certs/apache-selfsigned_www2018.crt
+    SSLCertificateKeyFile /etc/ssl/private/apache-selfsigned_www2018.key
+</VirtualHost>' > /etc/apache2/sites-available/www2018.fsd.team.conf
+
+# Create Apache's virtual host for aws.fsd.team
+sudo echo '<VirtualHost *:80 *:443>
     ServerName aws.fsd.team
     ServerAlias aws.fsd.team
     DocumentRoot /var/www/aws.fsd.team
     ErrorLog ${APACHE_LOG_DIR}/error.log
     CustomLog ${APACHE_LOG_DIR}/access.log combined
+    SSLEngine on
+    SSLCertificateFile /etc/ssl/certs/apache-selfsigned.crt
+    SSLCertificateKeyFile /etc/ssl/private/apache-selfsigned.key
 </VirtualHost>' > /etc/apache2/sites-available/aws.fsd.team.conf
+
+# Enable SSL
+sudo a2enmod ssl
+
+# Enable our virtual hosts
 sudo a2ensite aws.fsd.team
 sudo a2ensite www2018.epfl.ch
-sudo a2dissite 000-default.conf
-sudo systemctl restart apache2
-sudo apt install php libapache2-mod-php php-cli php-mysql -y
-sudo apt-get install restic -y
 
+# Disable the default site
+sudo a2dissite 000-default.conf
+
+# Apply the configuration by restarting Apache
+sudo systemctl restart apache2
+
+# Probably somehing we can do at line 15-16 :)
+sudo apt install php libapache2-mod-php php-cli php-mysql -y
